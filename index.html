@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>A-Frame 画像切り替えデモ</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <style>
+      .switch-buttons {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .switch-buttons button {
+        padding: 8px 16px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: none;
+        background: #232323bb;
+        color: #fff;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .switch-buttons button:hover {
+        background: #3e8e41;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="switch-buttons">
+      <button onclick="switchSky(0)">売場1</button>
+      <button onclick="switchSky(1)">カウンター前</button>
+      <button onclick="switchSky(2)">売場2</button>
+      <button onclick="switchSky(3)">催事</button>
+    </div>
+    <a-scene>
+      <a-sky id="sky"
+        src="images/A1.jpg"
+        rotation="0 -130 0"
+      ></a-sky>
+    </a-scene>
+    <script>
+      // 画像リスト
+      const images = [
+        "images/A1.jpg",
+        "images/B1.jpg",
+        "images/C1.jpg",
+        "images/D1.jpg"
+      ];
+
+
+      // 切り替え関数
+      function switchSky(index) {
+        const sky = document.getElementById("sky");
+        sky.setAttribute("src", images[index]);
+      }
+    </script>
+  </body>
+</html>
