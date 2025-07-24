@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
-    <title>A-Frame 画像切り替えデモ</title>
+    <title>A-Frame 画像切り替え＋ズームデモ</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <style>
       .switch-buttons {
@@ -18,7 +17,7 @@
       .switch-buttons button {
         padding: 8px 16px;
         font-size: 16px;
-        border-radius: 6px;
+        border-radius: 12px;
         border: none;
         background: #232323bb;
         color: #fff;
@@ -27,6 +26,46 @@
       }
       .switch-buttons button:hover {
         background: #3e8e41;
+      }
+      /* ズームUI左上に & 明るい青系・透明感 */
+      .zoom-controls {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .zoom-controls button {
+        padding: 8px 18px;
+        font-size: 16px;
+        border-radius: 16px;
+        border: none;
+        background: linear-gradient(90deg, #67d5ffcc, #c3eaffbb);
+        color: #205074;
+        font-weight: bold;
+        box-shadow: 0 2px 8px #8ed3ff33;
+        cursor: pointer;
+        transition: background 0.18s, color 0.18s;
+      }
+      .zoom-controls button:hover {
+        background: linear-gradient(90deg, #b3e3fccc, #c3eaffdd);
+        color: #126098;
+      }
+      .zoom-status {
+        margin-top: 6px;
+        background: linear-gradient(90deg, #eaf6ffcc 80%, #f3fdffbb);
+        color: #205074;
+        padding: 8px 18px;
+        border-radius: 16px;
+        font-size: 16px;
+        user-select: none;
+        min-width: 120px;
+        text-align: center;
+        font-weight: bold;
+        box-shadow: 0 2px 8px #a6e4ff26;
       }
     </style>
   </head>
@@ -37,11 +76,20 @@
       <button onclick="switchSky(2)">売場2</button>
       <button onclick="switchSky(3)">催事</button>
     </div>
+    <div class="zoom-controls">
+      <button onclick="zoom(-5)">＋ズームイン</button>
+      <button onclick="zoom(5)">－ズームアウト</button>
+      <button onclick="resetZoom()">リセット</button>
+      <div class="zoom-status" id="zoom-status">
+        ズーム倍率: 1.00x
+      </div>
+    </div>
     <a-scene>
       <a-sky id="sky"
         src="images/A1.jpg"
         rotation="0 -130 0"
       ></a-sky>
+      <a-entity id="camera" camera look-controls wasd-controls position="0 1.6 0"></a-entity>
     </a-scene>
     <script>
       // 画像リスト
@@ -52,12 +100,56 @@
         "images/D1.jpg"
       ];
 
+      // カメラFOV関連
+      const cam = document.getElementById('camera');
+      const zoomStatus = document.getElementById('zoom-status');
+      const fovDefault = 80; // デフォルト視野角
+      let fov = fovDefault;
 
-      // 切り替え関数
+      function getZoomFactor(fov) {
+        return (fovDefault / fov).toFixed(2);
+      }
+      function updateZoomStatus() {
+        zoomStatus.textContent = `ズーム倍率: ${getZoomFactor(fov)}x`;
+      }
       function switchSky(index) {
         const sky = document.getElementById("sky");
         sky.setAttribute("src", images[index]);
       }
+      function zoom(delta) {
+        fov = Math.min(120, Math.max(30, fov + delta));
+        cam.setAttribute('camera', 'fov', fov);
+        updateZoomStatus();
+      }
+      function resetZoom() {
+        fov = fovDefault;
+        cam.setAttribute('camera', 'fov', fov);
+        updateZoomStatus();
+      }
+      document.addEventListener('wheel', (e) => {
+        if (e.deltaY < 0) {
+          zoom(-5);
+        } else {
+          zoom(5);
+        }
+      });
+      let lastDist = null;
+      document.addEventListener('touchmove', function (e) {
+        if (e.touches.length === 2) {
+          let dx = e.touches[0].clientX - e.touches[1].clientX;
+          let dy = e.touches[0].clientY - e.touches[1].clientY;
+          let dist = Math.sqrt(dx * dx + dy * dy);
+          if (lastDist) {
+            if (dist > lastDist + 5) zoom(-5);
+            if (dist < lastDist - 5) zoom(5);
+          }
+          lastDist = dist;
+        }
+      }, {passive: false});
+      document.addEventListener('touchend', function () { lastDist = null; });
+
+      cam.setAttribute('camera', 'fov', fov);
+      updateZoomStatus();
     </script>
   </body>
 </html>
